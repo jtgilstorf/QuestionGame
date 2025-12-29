@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Question Imposter Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  background: #0d0d0d;
+  color: #eee;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+.card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+button {
+  padding: 12px 20px;
+  margin-top: 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button.primary {
+  background: #4CAF50;
+  color: white;
+}
+
+button.secondary {
+  background: #333;
+  color: white;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<h1>🕵️ Question Imposter</h1>
+
+<div id="setup" class="card">
+  <p>Number of Players</p>
+  <input type="number" id="playerCount" min="3" max="10" value="4">
+  <button class="primary" onclick="startGame()">Start Game</button>
+</div>
+
+<div id="playerTurn" class="card hidden">
+  <h2 id="playerTitle"></h2>
+  <p><strong>Your Question:</strong></p>
+  <p id="questionText"></p>
+  <textarea id="answerInput" placeholder="Type your answer..."></textarea>
+  <button class="primary" onclick="submitAnswer()">Submit & Pass Phone</button>
+</div>
+
+<div id="results" class="card hidden">
+  <h2>Answers</h2>
+  <div id="answersList"></div>
+  <button class="secondary" onclick="revealImposter()">Reveal Imposter</button>
+</div>
+
+<div id="reveal" class="card hidden">
+  <h2>🎭 Reveal</h2>
+  <p id="revealText"></p>
+  <button class="primary" onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+const questionPairs = [
+  {
+    normal: "What’s your favorite pizza topping?",
+    imposter: "What’s your least favorite pizza topping?"
+  },
+  {
+    normal: "What’s a good movie for a first date?",
+    imposter: "What’s a terrible movie for a first date?"
+  },
+  {
+    normal: "What’s the best vacation destination?",
+    imposter: "What’s the worst vacation destination?"
+  },
+  {
+    normal: "What’s a hobby you enjoy?",
+    imposter: "What’s a hobby you hate?"
+  }
+];
+
+let players = [];
+let currentPlayer = 0;
+let imposterIndex = 0;
+let chosenPair = null;
+
+function startGame() {
+  const count = parseInt(document.getElementById("playerCount").value);
+  players = Array.from({ length: count }, () => ({ answer: "" }));
+  imposterIndex = Math.floor(Math.random() * count);
+  chosenPair = questionPairs[Math.floor(Math.random() * questionPairs.length)];
+
+  document.getElementById("setup").classList.add("hidden");
+  showPlayer();
+}
+
+function showPlayer() {
+  document.getElementById("playerTurn").classList.remove("hidden");
+  document.getElementById("playerTitle").innerText = `Player ${currentPlayer + 1}`;
+  document.getElementById("answerInput").value = "";
+
+  document.getElementById("questionText").innerText =
+    currentPlayer === imposterIndex ? chosenPair.imposter : chosenPair.normal;
+}
+
+function submitAnswer() {
+  const answer = document.getElementById("answerInput").value.trim();
+  if (!answer) return;
+
+  players[currentPlayer].answer = answer;
+  currentPlayer++;
+
+  if (currentPlayer < players.length) {
+    showPlayer();
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  document.getElementById("playerTurn").classList.add("hidden");
+  document.getElementById("results").classList.remove("hidden");
+
+  const list = document.getElementById("answersList");
+  list.innerHTML = "";
+
+  players.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.style.marginBottom = "10px";
+    div.innerText = `Answer ${i + 1}: ${p.answer}`;
+    list.appendChild(div);
+  });
+}
+
+function revealImposter() {
+  document.getElementById("results").classList.add("hidden");
+  document.getElementById("reveal").classList.remove("hidden");
+
+  document.getElementById("revealText").innerHTML = `
+    Player ${imposterIndex + 1} was the imposter.<br><br>
+    <strong>Normal Question:</strong> ${chosenPair.normal}<br>
+    <strong>Imposter Question:</strong> ${chosenPair.imposter}
+  `;
+}
+</script>
+
+</body>
+</html>
