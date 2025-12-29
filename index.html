@@ -61,6 +61,12 @@ input, textarea {
 <div id="setup" class="card">
   <p>Number of Players</p>
   <input type="number" id="playerCount" min="3" max="10" value="4">
+  <button class="primary" onclick="setupNames()">Next</button>
+</div>
+
+<div id="nameEntry" class="card hidden">
+  <h2>Enter Player Names</h2>
+  <div id="nameInputs"></div>
   <button class="primary" onclick="startGame()">Start Game</button>
 </div>
 
@@ -86,22 +92,10 @@ input, textarea {
 
 <script>
 const questionPairs = [
-  {
-    normal: "What’s your favorite pizza topping?",
-    imposter: "What’s your least favorite pizza topping?"
-  },
-  {
-    normal: "What’s a good movie for a first date?",
-    imposter: "What’s a terrible movie for a first date?"
-  },
-  {
-    normal: "What’s the best vacation destination?",
-    imposter: "What’s the worst vacation destination?"
-  },
-  {
-    normal: "What’s a hobby you enjoy?",
-    imposter: "What’s a hobby you hate?"
-  }
+  { normal: "What’s your favorite pizza topping?", imposter: "What’s your least favorite pizza topping?" },
+  { normal: "What’s a good movie for a first date?", imposter: "What’s a terrible movie for a first date?" },
+  { normal: "What’s the best vacation destination?", imposter: "What’s the worst vacation destination?" },
+  { normal: "What’s a hobby you enjoy?", imposter: "What’s a hobby you hate?" }
 ];
 
 let players = [];
@@ -109,19 +103,46 @@ let currentPlayer = 0;
 let imposterIndex = 0;
 let chosenPair = null;
 
+function setupNames() {
+  const count = parseInt(document.getElementById("playerCount").value);
+  if (count < 3) {
+    alert("Minimum 3 players required.");
+    return;
+  }
+
+  document.getElementById("setup").classList.add("hidden");
+  const nameInputsDiv = document.getElementById("nameInputs");
+  nameInputsDiv.innerHTML = "";
+
+  for (let i = 0; i < count; i++) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = `Player ${i + 1} Name`;
+    input.id = `playerName${i}`;
+    nameInputsDiv.appendChild(input);
+  }
+
+  document.getElementById("nameEntry").classList.remove("hidden");
+}
+
 function startGame() {
   const count = parseInt(document.getElementById("playerCount").value);
-  players = Array.from({ length: count }, () => ({ answer: "" }));
+  players = [];
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`playerName${i}`).value.trim() || `Player ${i + 1}`;
+    players.push({ name: name, answer: "" });
+  }
+
   imposterIndex = Math.floor(Math.random() * count);
   chosenPair = questionPairs[Math.floor(Math.random() * questionPairs.length)];
 
-  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("nameEntry").classList.add("hidden");
   showPlayer();
 }
 
 function showPlayer() {
   document.getElementById("playerTurn").classList.remove("hidden");
-  document.getElementById("playerTitle").innerText = `Player ${currentPlayer + 1}`;
+  document.getElementById("playerTitle").innerText = `${players[currentPlayer].name}`;
   document.getElementById("answerInput").value = "";
 
   document.getElementById("questionText").innerText =
@@ -152,7 +173,7 @@ function showResults() {
   players.forEach((p, i) => {
     const div = document.createElement("div");
     div.style.marginBottom = "10px";
-    div.innerText = `Answer ${i + 1}: ${p.answer}`;
+    div.innerText = `${p.name}: ${p.answer}`;
     list.appendChild(div);
   });
 }
@@ -162,7 +183,7 @@ function revealImposter() {
   document.getElementById("reveal").classList.remove("hidden");
 
   document.getElementById("revealText").innerHTML = `
-    Player ${imposterIndex + 1} was the imposter.<br><br>
+    ${players[imposterIndex].name} was the imposter.<br><br>
     <strong>Normal Question:</strong> ${chosenPair.normal}<br>
     <strong>Imposter Question:</strong> ${chosenPair.imposter}
   `;
