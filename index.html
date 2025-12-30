@@ -12,7 +12,6 @@ body {
   text-align: center;
   padding: 20px;
 }
-
 .card {
   background: #1a1a1a;
   border-radius: 12px;
@@ -20,7 +19,6 @@ body {
   max-width: 500px;
   margin: 20px auto;
 }
-
 button {
   padding: 12px 20px;
   margin-top: 15px;
@@ -29,17 +27,8 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
-
-button.primary {
-  background: #4CAF50;
-  color: white;
-}
-
-button.secondary {
-  background: #333;
-  color: white;
-}
-
+.primary { background:#4CAF50; color:white; }
+.secondary { background:#333; color:white; }
 input, textarea {
   width: 100%;
   padding: 10px;
@@ -48,10 +37,7 @@ input, textarea {
   border: none;
   font-size: 16px;
 }
-
-.hidden {
-  display: none;
-}
+.hidden { display:none; }
 </style>
 </head>
 <body>
@@ -70,8 +56,13 @@ input, textarea {
   <button class="primary" onclick="startGame()">Start Game</button>
 </div>
 
+<div id="passScreen" class="card hidden">
+  <h2 id="passTitle"></h2>
+  <p>Hand the phone to this player</p>
+  <button class="primary" onclick="revealQuestion()">Reveal Question</button>
+</div>
+
 <div id="playerTurn" class="card hidden">
-  <h2 id="playerTitle"></h2>
   <p><strong>Your Question:</strong></p>
   <p id="questionText"></p>
   <textarea id="answerInput" placeholder="Type your answer..."></textarea>
@@ -214,8 +205,8 @@ const questionPairs = [
   { normal: "Who in this room is most likely to win at a game of trivia?", imposter: "Who in this room is most likely to get every answer wrong?" },
   { normal: "Who in this room is most likely to volunteer for something nobody wants to do?", imposter: "Who in this room is most likely to avoid all responsibilities?" },
   { normal: "Who in this room is most likely to tell a story and forget the ending?", imposter: "Who in this room is most likely to always finish their story perfectly?" },
-  { normal: "Who in this room is most likely to binge-watch an entire series in one day?", imposter: "Who in this room is most likely to watch one episode and stop?" },
-  { normal: "Who in this room is most likely to get caught daydreaming?", imposter: "Who in this room is most likely to stay focused all the time?" },
+  { normal: "Who in this room is most likely to binge-watch an entire series in one day?", imposter: "Who in this room is most likely to watch one episode of a tv show and quit?" },
+  { normal: "Who in this room is most likely to get caught daydreaming?", imposter: "Who in this room is the most productive?" },
   { normal: "Who in this room is most likely to eat something unusual just to try it?", imposter: "Who in this room is most likely to never try anything new?" },
   { normal: "Who in this room is most likely to start a new hobby and stick with it?", imposter: "Who in this room is most likely to quit hobbies immediately?" },
   { normal: "Who in this room is most likely to be the first to apologize after a disagreement?", imposter: "Who in this room is most likely to never apologize?" },
@@ -224,123 +215,90 @@ const questionPairs = [
   { normal: "Who in this room is most likely to tell a joke that nobody laughs at?", imposter: "Who in this room is most likely to always make people laugh?" },
   { normal: "Who in this room is most likely to ask a question nobody else wants to ask?", imposter: "Who in this room is most likely to never speak up?" },
   { normal: "Who in this room is most likely to have the best sense of direction?", imposter: "Who in this room is most likely to get lost everywhere?" },
-  const whoInRoomFunnyOpenEndedPairs = [
-  // Social / Funny
   { normal: "Who in this room would probably survive a group argument the longest without yelling?", imposter: "Who in this room would probably storm out at the first disagreement?" },
-  { normal: "Who in this room would most likely eat something off the floor if they were hungry?", imposter: "Who in this room would probably never touch anything off the floor?" },
-  { normal: "Who in this room would most likely start laughing at a completely inappropriate moment?", imposter: "Who in this room would probably stay serious no matter what?" },
-  { normal: "Who in this room would most likely convince someone to do something ridiculous?", imposter: "Who in this room would probably refuse to participate in anything silly?" },
-  { normal: "Who in this room would most likely make an awkward joke that everyone laughs at anyway?", imposter: "Who in this room would probably never make a joke in public?" },
-  { normal: "Who in this room would most likely forget to wear matching socks?", imposter: "Who in this room would probably never make a fashion mistake?" },
-  { normal: "Who in this room would most likely leave dirty dishes in the sink for days?", imposter: "Who in this room would probably wash everything immediately?" },
-  { normal: "Who in this room would most likely talk to themselves out loud?", imposter: "Who in this room would probably never say a word to themselves?" },
-  { normal: "Who in this room would most likely forget why they walked into a room?", imposter: "Who in this room would probably always remember exactly why they came in?" },
-  { normal: "Who in this room would most likely misplace their keys or phone multiple times a week?", imposter: "Who in this room would probably never lose anything?" },
+  { normal: "Who in this room would most likely eat something off the floor if they were hungry?", imposter: "Who in this room washes there hands the most?" },
+  { normal: "Who in this room is the most convincing?", imposter: "Who in this room would probably refuse to participate in anything silly?" },
+  { normal: "Who in this room would most likely forget to wear matching socks?", imposter: "Who in this room has the best fashion?" },
+  { normal: "Who in this room would most likely leave dirty dishes in the sink for days?", imposter: "Who in this room cleans the most?" },
+  { normal: "Who in this room would most likely talk to themselves out loud?", imposter: "Who in this room talks the most?" },
+  { normal: "Who in this room would most likely forget why they walked into a room?", imposter: "Who in this room has the best memory?" },
+  { normal: "Who in this room would most likely misplace their keys or phone multiple times a week?", imposter: "Who in this room is the most responsible?" },
   { normal: "Who in this room would most likely start a spontaneous dance-off?", imposter: "Who in this room would probably refuse to move at all?" },
-  { normal: "Who in this room would most likely finish everyone else's leftovers without asking?", imposter: "Who in this room would probably never touch anyone else's food?" },
+  { normal: "Who in this room would most likely finish everyone else's leftovers without asking?", imposter: "Who in this room cooks the most?" },
   { normal: "Who in this room would most likely survive longest in a zombie apocalypse?", imposter: "Who in this room would probably hide and do nothing?" },
-  { normal: "Who in this room would most likely get caught laughing at a meme at the wrong time?", imposter: "Who in this room would probably never laugh at anything inappropriate?" },
-  { normal: "Who in this room would most likely start a ridiculous rumor just for fun?", imposter: "Who in this room would probably never gossip under any circumstances?" },
-  { normal: "Who in this room would most likely win a game even if they didn’t understand the rules?", imposter: "Who in this room would probably lose even with perfect strategy?" },
-  { normal: "Who in this room would most likely accidentally make a huge mess during a simple task?", imposter: "Who in this room would probably never spill a thing?" },
+  { normal: "Who in this room would most likely get caught laughing at a meme at the wrong time?", imposter: "Who in this room would never laugh at anything inappropriate?" },
+  { normal: "Who in this room would most likely start a ridiculous rumor just for fun?", imposter: "Who in this room is least likely to gossip?" },
+  { normal: "Who in this room would most likely win a board game?", imposter: "Who in this room plays the most video games?" },
+  { normal: "Who in this room would most likely accidentally make a huge mess during a simple task?", imposter: "Who in this room is the cleanest?" },
   { normal: "Who in this room would most likely overthink a simple decision for hours?", imposter: "Who in this room would probably decide instantly without hesitation?" },
-  { normal: "Who in this room would most likely know a random fact nobody asked for?", imposter: "Who in this room would probably stay quiet even when they know something interesting?" },
-  { normal: "Who in this room would most likely try to fix something and make it worse?", imposter: "Who in this room would probably do nothing and leave it broken?" }
+  { normal: "Who in this room is the cleanest", imposter: "Who in this room would drop food on the floor and not clean it up." }
 ];
 
-];
+let players=[], currentPlayer=0, imposterIndex=0, chosenPair=null;
 
-let players = [];
-let currentPlayer = 0;
-let imposterIndex = 0;
-let chosenPair = null;
-
-function setupNames() {
-  const count = parseInt(document.getElementById("playerCount").value);
-  if (count < 3) {
-    alert("Minimum 3 players required.");
-    return;
+function setupNames(){
+  const count=+playerCount.value;
+  nameInputs.innerHTML="";
+  setup.classList.add("hidden");
+  for(let i=0;i<count;i++){
+    let input=document.createElement("input");
+    input.placeholder=`Player ${i+1} Name`;
+    input.id=`playerName${i}`;
+    nameInputs.appendChild(input);
   }
-
-  document.getElementById("setup").classList.add("hidden");
-  const nameInputsDiv = document.getElementById("nameInputs");
-  nameInputsDiv.innerHTML = "";
-
-  for (let i = 0; i < count; i++) {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = `Player ${i + 1} Name`;
-    input.id = `playerName${i}`;
-    nameInputsDiv.appendChild(input);
-  }
-
-  document.getElementById("nameEntry").classList.remove("hidden");
+  nameEntry.classList.remove("hidden");
 }
 
-function startGame() {
-  const count = parseInt(document.getElementById("playerCount").value);
-  players = [];
-  for (let i = 0; i < count; i++) {
-    const name = document.getElementById(`playerName${i}`).value.trim() || `Player ${i + 1}`;
-    players.push({ name: name, answer: "" });
+function startGame(){
+  const count=+playerCount.value;
+  players=[];
+  for(let i=0;i<count;i++){
+    players.push({name:document.getElementById(`playerName${i}`).value||`Player ${i+1}`,answer:""});
   }
-
-  imposterIndex = Math.floor(Math.random() * count);
-  chosenPair = questionPairs[Math.floor(Math.random() * questionPairs.length)];
-
-  document.getElementById("nameEntry").classList.add("hidden");
-  showPlayer();
+  imposterIndex=Math.floor(Math.random()*count);
+  chosenPair=questionPairs[Math.floor(Math.random()*questionPairs.length)];
+  nameEntry.classList.add("hidden");
+  showPassScreen();
 }
 
-function showPlayer() {
-  document.getElementById("playerTurn").classList.remove("hidden");
-  document.getElementById("playerTitle").innerText = `${players[currentPlayer].name}`;
-  document.getElementById("answerInput").value = "";
-
-  document.getElementById("questionText").innerText =
-    currentPlayer === imposterIndex ? chosenPair.imposter : chosenPair.normal;
+function showPassScreen(){
+  passScreen.classList.remove("hidden");
+  playerTurn.classList.add("hidden");
+  passTitle.innerText=players[currentPlayer].name;
 }
 
-function submitAnswer() {
-  const answer = document.getElementById("answerInput").value.trim();
-  if (!answer) return;
+function revealQuestion(){
+  passScreen.classList.add("hidden");
+  playerTurn.classList.remove("hidden");
+  answerInput.value="";
+  questionText.innerText=currentPlayer===imposterIndex?chosenPair.imposter:chosenPair.normal;
+}
 
-  players[currentPlayer].answer = answer;
+function submitAnswer(){
+  if(!answerInput.value.trim())return;
+  players[currentPlayer].answer=answerInput.value.trim();
   currentPlayer++;
-
-  if (currentPlayer < players.length) {
-    showPlayer();
-  } else {
-    showResults();
-  }
+  currentPlayer<players.length?showPassScreen():showResults();
 }
 
-function showResults() {
-  document.getElementById("playerTurn").classList.add("hidden");
-  document.getElementById("results").classList.remove("hidden");
-
-  const list = document.getElementById("answersList");
-  list.innerHTML = "";
-
-  players.forEach((p, i) => {
-    const div = document.createElement("div");
-    div.style.marginBottom = "10px";
-    div.innerText = `${p.name}: ${p.answer}`;
-    list.appendChild(div);
+function showResults(){
+  playerTurn.classList.add("hidden");
+  results.classList.remove("hidden");
+  answersList.innerHTML="";
+  players.forEach(p=>{
+    let d=document.createElement("div");
+    d.innerText=`${p.name}: ${p.answer}`;
+    answersList.appendChild(d);
   });
 }
 
-function revealImposter() {
-  document.getElementById("results").classList.add("hidden");
-  document.getElementById("reveal").classList.remove("hidden");
-
-  document.getElementById("revealText").innerHTML = `
-    ${players[imposterIndex].name} was the imposter.<br><br>
-    <strong>Normal Question:</strong> ${chosenPair.normal}<br>
-    <strong>Imposter Question:</strong> ${chosenPair.imposter}
-  `;
+function revealImposter(){
+  results.classList.add("hidden");
+  reveal.classList.remove("hidden");
+  revealText.innerHTML=`${players[imposterIndex].name} was the imposter.<br><br>
+  <strong>Normal:</strong> ${chosenPair.normal}<br>
+  <strong>Imposter:</strong> ${chosenPair.imposter}`;
 }
 </script>
-
 </body>
 </html>
