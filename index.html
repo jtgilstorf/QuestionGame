@@ -71,6 +71,10 @@ input, textarea {
 
 <div id="results" class="card hidden">
   <h2>Answers</h2>
+  
+  <p><strong>Question:</strong></p>
+  <p id="normalQuestionDisplay"></p>
+  
   <div id="answersList"></div>
   <button class="secondary" onclick="revealImposter()">Reveal Imposter</button>
 </div>
@@ -304,6 +308,9 @@ function submitAnswer(){
 function showResults(){
   playerTurn.classList.add("hidden");
   results.classList.remove("hidden");
+
+  document.getElementById("normalQuestionDisplay").innerText = chosenPair.normal;
+
   answersList.innerHTML="";
   players.forEach(p=>{
     let d=document.createElement("div");
